@@ -3,12 +3,13 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 
 const firebaseConfig = {
-  projectId: "eminent-infinity-nn56p",
-  appId: "1:307606434996:web:c2bdb54a0c009a008ed3e1",
-  apiKey: "AIzaSyASTxzne0vV5wj4B9w922UQIQ246DnlGuc",
-  authDomain: "eminent-infinity-nn56p.firebaseapp.com",
-  storageBucket: "eminent-infinity-nn56p.firebasestorage.app",
-  messagingSenderId: "307606434996",
+  apiKey: "AIzaSyAauwVArSQjmrHXxmE4log69eNZppeuZmU",
+  authDomain: "taskflow-company-a8958.firebaseapp.com",
+  projectId: "taskflow-company-a8958",
+  storageBucket: "taskflow-company-a8958.firebasestorage.app",
+  messagingSenderId: "647605417705",
+  appId: "1:647605417705:web:3022f52dcd3a3de2cbe278",
+  measurementId: "G-GD16GYZL66"
 };
 
 // Initialize Firebase App
@@ -17,9 +18,8 @@ const app = initializeApp(firebaseConfig);
 // Initialize Authentication
 export const auth = getAuth(app);
 
-// Initialize Firestore with custom databaseId
-const firestoreDatabaseId = "ai-studio-a6539646-a1e8-47ee-ad5b-2d1e709a95d3";
-export const db = getFirestore(app, firestoreDatabaseId);
+// Initialize Firestore with default database
+export const db = getFirestore(app);
 
 // Custom Firestore Error Handling conforming to the firebase-integration skill
 export enum OperationType {
