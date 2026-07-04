@@ -1,0 +1,194 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "User profile with their username and display name.",
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "Unique username chosen by the user."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "User's full name."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of profile creation."
+        }
+      },
+      "required": ["username", "fullName", "createdAt"]
+    },
+    "username": {
+      "title": "Username",
+      "description": "Unique username mapping to user UID to prevent duplicate usernames.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The UID of the user."
+        }
+      },
+      "required": ["uid"]
+    },
+    "category": {
+      "title": "Category",
+      "description": "Task categories created dynamically by users.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The unique name of the category."
+        },
+        "color": {
+          "type": "string",
+          "description": "Hex color code for visual display."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID of the user who created this category."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of category creation."
+        }
+      },
+      "required": ["name", "color", "createdBy", "createdAt"]
+    },
+    "task": {
+      "title": "Task",
+      "description": "A task with assignee, status, timeline, and category.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Task title."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed task description."
+        },
+        "category": {
+          "type": "string",
+          "description": "Name or ID of the selected category."
+        },
+        "assigneeName": {
+          "type": "string",
+          "description": "The name of the assignee."
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Task start date."
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Task target end date."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["To Do", "In Progress", "Done"],
+          "description": "Current workflow state."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID of the user who created this task."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of task creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of last status or data edit."
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "category",
+        "assigneeName",
+        "startDate",
+        "endDate",
+        "status",
+        "createdBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "auditLog": {
+      "title": "AuditLog",
+      "description": "A ledger tracking history of edits and updates to any task.",
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "ID of the target task."
+        },
+        "taskTitle": {
+          "type": "string",
+          "description": "Title of the task when logged."
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "Full name of the editor."
+        },
+        "updatedByUsername": {
+          "type": "string",
+          "description": "Username of the editor."
+        },
+        "changeType": {
+          "type": "string",
+          "enum": ["created", "updated", "deleted"],
+          "description": "Action type performed on the task."
+        },
+        "changes": {
+          "type": "object",
+          "description": "Detailed map of field updates: { fieldName: { old, new } }."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the action was recorded."
+        }
+      },
+      "required": [
+        "taskId",
+        "taskTitle",
+        "updatedBy",
+        "updatedByUsername",
+        "changeType",
+        "changes",
+        "timestamp"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/user" },
+      "description": "User profile records."
+    },
+    "/usernames/{username}": {
+      "schema": { "$ref": "#/entities/username" },
+      "description": "Enforce username uniqueness lookup."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/category" },
+      "description": "Dynamic categories managed by users."
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/task" },
+      "description": "Task management records."
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/auditLog" },
+      "description": "Permanently saved track of edits and updates."
+    }
+  }
+}

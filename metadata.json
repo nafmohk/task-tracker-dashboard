@@ -1,0 +1,6 @@
+{
+  "name": "Task Tracker Dashboard",
+  "description": "A highly responsive Web and Desktop Task Tracker with customized Firebase Auth (Username and Password only), category management, real-time analytics, and persistent history logs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

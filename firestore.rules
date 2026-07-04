@@ -1,0 +1,171 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Connection test collection for development checks
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Collection: Users
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['uid', 'username', 'fullName', 'createdAt'])
+        && request.resource.data.keys().size() == 4
+        && request.resource.data.uid == userId
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 3
+        && request.resource.data.username.size() <= 30
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() >= 1
+        && request.resource.data.fullName.size() <= 100;
+      allow update: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['uid', 'username', 'fullName', 'createdAt'])
+        && request.resource.data.keys().size() == 4
+        && request.resource.data.uid == userId
+        && request.resource.data.username is string
+        && request.resource.data.username.size() >= 3
+        && request.resource.data.username.size() <= 30
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() >= 1
+        && request.resource.data.fullName.size() <= 100
+        && request.resource.data.createdAt == resource.data.createdAt; // Immortal field
+      allow delete: if false;
+    }
+
+    // Collection: Usernames (for unique check)
+    match /usernames/{username} {
+      allow read: if true; // anyone can check if a username is taken
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['uid'])
+        && request.resource.data.keys().size() == 1
+        && request.resource.data.uid == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    // Collection: Categories
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && isValidId(categoryId)
+        && request.resource.data.keys().hasAll(['id', 'name', 'color', 'createdBy', 'createdAt'])
+        && request.resource.data.keys().size() == 5
+        && request.resource.data.id == categoryId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.color is string
+        && request.resource.data.color.matches('^#[0-9a-fA-F]{6}$')
+        && request.resource.data.createdBy is string;
+      allow update: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['id', 'name', 'color', 'createdBy', 'createdAt'])
+        && request.resource.data.keys().size() == 5
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.color is string
+        && request.resource.data.color.matches('^#[0-9a-fA-F]{6}$')
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt; // Immortal fields
+      allow delete: if isAuthenticated(); // Collaborative delete
+    }
+
+    // Collection: Tasks
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && isValidId(taskId)
+        && request.resource.data.keys().hasAll([
+          'id', 'title', 'description', 'category', 'assigneeName',
+          'startDate', 'endDate', 'status', 'progress', 'createdBy',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().size() == 12
+        && request.resource.data.id == taskId
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 1
+        && request.resource.data.title.size() <= 150
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 2000
+        && request.resource.data.category is string
+        && request.resource.data.category.size() <= 100
+        && request.resource.data.assigneeName is string
+        && request.resource.data.assigneeName.size() >= 1
+        && request.resource.data.assigneeName.size() <= 100
+        && request.resource.data.status in ['To Do', 'In Progress', 'Done']
+        && request.resource.data.progress is int
+        && request.resource.data.progress >= 0
+        && request.resource.data.progress <= 100
+        && request.resource.data.createdBy is string;
+      allow update: if isAuthenticated()
+        && request.resource.data.keys().hasAll([
+          'id', 'title', 'description', 'category', 'assigneeName',
+          'startDate', 'endDate', 'status', 'progress', 'createdBy',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().size() == 12
+        && request.resource.data.id == taskId
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 1
+        && request.resource.data.title.size() <= 150
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 2000
+        && request.resource.data.category is string
+        && request.resource.data.category.size() <= 100
+        && request.resource.data.assigneeName is string
+        && request.resource.data.assigneeName.size() >= 1
+        && request.resource.data.assigneeName.size() <= 100
+        && request.resource.data.status in ['To Do', 'In Progress', 'Done']
+        && request.resource.data.progress is int
+        && request.resource.data.progress >= 0
+        && request.resource.data.progress <= 100
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt; // Immortal fields
+      allow delete: if isAuthenticated(); // Collaborative delete
+    }
+
+    // Collection: Audit Logs
+    match /audit_logs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && isValidId(logId)
+        && request.resource.data.keys().hasAll([
+          'id', 'taskId', 'taskTitle', 'updatedBy', 'updatedByUsername',
+          'changeType', 'changes', 'timestamp'
+        ])
+        && request.resource.data.keys().size() == 8
+        && request.resource.data.id == logId
+        && request.resource.data.taskId is string
+        && request.resource.data.taskId.size() <= 128
+        && request.resource.data.taskTitle is string
+        && request.resource.data.taskTitle.size() <= 150
+        && request.resource.data.updatedBy is string
+        && request.resource.data.updatedBy.size() <= 100
+        && request.resource.data.updatedByUsername is string
+        && request.resource.data.updatedByUsername.size() <= 50
+        && request.resource.data.changeType in ['created', 'updated', 'deleted']
+        && request.resource.data.changes is map;
+      allow update, delete: if false; // Audit logs are immutable and cannot be deleted or changed
+    }
+  }
+}

@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Collection: Users
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['username', 'fullName', 'createdAt'])
+        && request.resource.data.keys().size() == 3
+        && request.resource.data.username is string
+        && request.resource.data.fullName is string
+        && request.resource.data.fullName.size() >= 1
+        && request.resource.data.fullName.size() <= 100;
+      allow delete: if false;
+    }
+
+    // Collection: Usernames (for unique check)
+    match /usernames/{username} {
+      allow read: if true; // anyone can check if a username is taken
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasAll(['uid'])
+        && request.resource.data.keys().size() == 1
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    // Collection: Categories
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && isValidId(categoryId)
+        && request.resource.data.keys().hasAll(['name', 'color', 'createdBy', 'createdAt'])
+        && request.resource.data.keys().size() == 4
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.color is string
+        && request.resource.data.color.matches('^#[0-9a-fA-F]{6}$')
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.color is string
+        && request.resource.data.color.matches('^#[0-9a-fA-F]{6}$');
+      allow delete: if isAuthenticated();
+    }
+
+    // Collection: Tasks
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && isValidId(taskId)
+        && request.resource.data.keys().hasAll([
+          'title', 'description', 'category', 'assigneeName',
+          'startDate', 'endDate', 'status', 'createdBy',
+          'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().size() == 10
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 1
+        && request.resource.data.title.size() <= 150
+        && request.resource.data.description is string
+        && request.resource.data.category is string
+        && request.resource.data.assigneeName is string
+        && request.resource.data.assigneeName.size() >= 1
+        && request.resource.data.status in ['To Do', 'In Progress', 'Done']
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isAuthenticated()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 1
+        && request.resource.data.title.size() <= 150
+        && request.resource.data.status in ['To Do', 'In Progress', 'Done'];
+      allow delete: if isAuthenticated();
+    }
+
+    // Collection: Audit Logs
+    match /audit_logs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && isValidId(logId)
+        && request.resource.data.keys().hasAll([
+          'taskId', 'taskTitle', 'updatedBy', 'updatedByUsername',
+          'changeType', 'changes', 'timestamp'
+        ])
+        && request.resource.data.keys().size() == 7
+        && request.resource.data.taskId is string
+        && request.resource.data.taskTitle is string
+        && request.resource.data.updatedBy is string
+        && request.resource.data.updatedByUsername is string
+        && request.resource.data.changeType in ['created', 'updated', 'deleted']
+        && request.resource.data.changes is map;
+      allow update, delete: if false; // Audit logs are immutable and cannot be deleted or changed
+    }
+  }
+}
