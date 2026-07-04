@@ -160,35 +160,6 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
     }
   };
 
-  const handleLocalSandboxMode = () => {
-    setError('');
-    setSuccessMsg('Initializing Local Sandbox Mode...');
-    setLoading(true);
-    setTimeout(async () => {
-      try {
-        TaskTrackerRepository.setLocalMode(true);
-        const localUserJson = localStorage.getItem('taskflow_local_user');
-        if (localUserJson) {
-          const profile = JSON.parse(localUserJson);
-          onAuthSuccess(profile);
-        } else {
-          const profile = await TaskTrackerRepository.registerUser('Sandbox User', 'sandbox', '123456');
-          onAuthSuccess(profile);
-        }
-      } catch (err: any) {
-        console.error(err);
-        try {
-          const profile = await TaskTrackerRepository.loginUser('sandbox', '123456');
-          onAuthSuccess(profile);
-        } catch (loginErr) {
-          setError('Failed to initialize local sandbox user');
-        }
-      } finally {
-        setLoading(false);
-      }
-    }, 800);
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6 font-sans select-none">
       <div className="absolute inset-0 bg-radial from-indigo-50/50 via-transparent to-transparent pointer-events-none" />
@@ -255,16 +226,8 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
                         </ol>
                       </div>
 
-                      <div className="pt-1 flex flex-col gap-1.5">
-                        <p className="text-[11px] font-medium text-rose-800">Or use a hassle-free, zero-config alternative instantly:</p>
-                        <button
-                          type="button"
-                          onClick={handleLocalSandboxMode}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-all text-xs shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-                        >
-                          <div className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
-                          <span>Activate Local Sandbox Mode (Offline & Instant)</span>
-                        </button>
+                      <div className="pt-1">
+                        <p className="text-[11px] font-medium text-rose-800">Please use "Continue with Google" below, or enable Email/Password in the Firebase Console.</p>
                       </div>
                     </div>
                   ) : (
@@ -472,17 +435,6 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
               >
                 <Chrome className="h-4.5 w-4.5 text-red-500" />
                 <span>Continue with Google</span>
-              </button>
-
-              <button
-                id="auth-sandbox-btn"
-                type="button"
-                onClick={handleLocalSandboxMode}
-                disabled={loading}
-                className="w-full py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-semibold text-sm rounded-xl transition-all shadow-sm flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-75"
-              >
-                <div className="h-2 w-2 rounded-full bg-indigo-600 animate-pulse" />
-                <span>Enter Local Sandbox Mode (Offline)</span>
               </button>
 
               <div className="pt-2 text-center">

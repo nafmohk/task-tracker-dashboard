@@ -152,7 +152,7 @@ export default function App() {
               <div>
                 <h1 className="text-md font-bold text-white tracking-tight">TASKFLOW</h1>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                  {TaskTrackerRepository.isLocalMode() ? 'Sandbox Mode' : 'Cloud Engine'}
+                  Cloud Engine
                 </p>
               </div>
             </div>
@@ -224,11 +224,6 @@ export default function App() {
               <div className="min-w-0">
                 <p className="text-xs font-bold text-white truncate leading-snug">{currentUser.fullName}</p>
                 <p className="text-[10px] text-slate-500 font-semibold truncate">@{currentUser.username}</p>
-                {TaskTrackerRepository.isLocalMode() && (
-                  <span className="inline-block mt-1 text-[9px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-sm font-extrabold tracking-wider uppercase">
-                    Sandbox Mode
-                  </span>
-                )}
               </div>
             </div>
 
@@ -269,7 +264,7 @@ export default function App() {
           {syncing && (
             <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-white border border-slate-100 px-2.5 py-1 rounded-full shadow-xs text-[10px] font-bold text-slate-400">
               <div className="h-2.5 w-2.5 border-2 border-slate-200 border-t-slate-500 rounded-full animate-spin" />
-              <span>{TaskTrackerRepository.isLocalMode() ? 'Syncing Local Sandbox...' : 'Syncing Live Cloud...'}</span>
+              <span>Syncing Live Cloud...</span>
             </div>
           )}
 
